@@ -27,6 +27,29 @@ const Boton = styled.button`
   }
 `;
 
+const Acciones = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const AccionSecundaria = styled.button`
+  background: #0f574e;
+  color: #fff;
+  border: 1px solid #0a3c35;
+  padding: 0.7rem 1.2rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  :hover {
+    background: #0a3c35;
+  }
+`;
+
 function App() {
 
 	//  state de frases
@@ -52,6 +75,48 @@ function App() {
 
 	}
 
+	const buildQuoteText = () => {
+		if (!frase || !frase.quote) return '';
+		return `"${frase.quote}" — ${frase.author || 'Desconocido'}`;
+	};
+
+	const copiarFrase = async () => {
+		const texto = buildQuoteText();
+		if (!texto) return;
+
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(texto);
+			} else {
+				const area = document.createElement('textarea');
+				area.value = texto;
+				document.body.appendChild(area);
+				area.select();
+				document.execCommand('copy');
+				document.body.removeChild(area);
+			}
+			// Quick feedback
+			console.log('Frase copiada al portapapeles');
+		} catch (error) {
+			console.error('No se pudo copiar la frase', error);
+		}
+	};
+
+	const compartirFrase = async () => {
+		const texto = buildQuoteText();
+		if (!texto) return;
+
+		try {
+			if (navigator.share) {
+				await navigator.share({ text: texto });
+			} else {
+				await copiarFrase();
+			}
+		} catch (error) {
+			console.error('No se pudo compartir la frase', error);
+		}
+	};
+
 	// Cargar una frase
 	useEffect(() => {
 		consultarAPI()
@@ -67,6 +132,14 @@ function App() {
 			>
 				Obtener Frase
     </Boton>
+			<Acciones>
+				<AccionSecundaria onClick={copiarFrase}>
+					Copiar
+				</AccionSecundaria>
+				<AccionSecundaria onClick={compartirFrase}>
+					Compartir
+				</AccionSecundaria>
+			</Acciones>
 		</Contenedor>
 	);
 }
