@@ -33,15 +33,23 @@ function App() {
 	const [frase, guardarFrase] = useState({});
 
 	const consultarAPI = async () => {
-		const api = await fetch('https://breaking-bad-quotes.herokuapp.com/v1/quotes');
+		try {
+			const api = await fetch('https://api.breakingbadquotes.xyz/v1/quotes');
 
-		// promises
-		// const frase = api.then(respuesta =>   respuesta.json());
-		// frase.then(resultado => console.log(resultado));
+			if (!api.ok) {
+				throw new Error(`HTTP ${api.status}`);
+			}
 
-		// async-await
-		const frase = await api.json()
-		guardarFrase(frase[0]);
+			const frase = await api.json();
+			guardarFrase(frase[0]);
+		} catch (error) {
+			console.error('No se pudo obtener la frase', error);
+			guardarFrase({
+				quote: 'No se pudo obtener la frase. Intenta nuevamente en unos momentos.',
+				author: 'Error'
+			});
+		}
+
 	}
 
 	// Cargar una frase
