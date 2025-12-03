@@ -6,6 +6,10 @@ const ContenedorFrase = styled.div`
     border-radius: .5rem;
     background-color: #fff;
 	max-width:800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
 
     @media (min-width: 992px) {
         margin-top: 10rem;
@@ -36,12 +40,24 @@ const ContenedorFrase = styled.div`
     }
 `;
 
-const Frase = ({ frase }) => {
+const ImagenAutor = styled.img`
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #0f574e;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+`;
+
+const Frase = ({ frase, imagenAutor }) => {
 
 	// if (Object.keys(frase).length === 0) return null;
 
 	return (
 		<ContenedorFrase>
+            {imagenAutor
+				? <ImagenAutor src={imagenAutor} alt={`Foto de ${frase.author}`} />
+				: null}
 			<h1>{frase.quote}</h1>
 			<p>-{frase.author}</p>
 		</ContenedorFrase>
