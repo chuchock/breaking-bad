@@ -54,6 +54,7 @@ function App() {
 
 	//  state de frases
 	const [frase, guardarFrase] = useState({});
+	const [imagenAutor, setImagenAutor] = useState('');
 
 	const consultarAPI = async () => {
 		try {
@@ -78,6 +79,26 @@ function App() {
 	const buildQuoteText = () => {
 		if (!frase || !frase.quote) return '';
 		return `"${frase.quote}" — ${frase.author || 'Desconocido'}`;
+	};
+
+	const consultarImagenAutor = async autor => {
+		if (!autor) {
+			setImagenAutor('');
+			return;
+		}
+
+		try {
+			const respuesta = await fetch(`https://breakingbadapi.com/api/characters?name=${encodeURIComponent(autor)}`);
+			if (!respuesta.ok) {
+				throw new Error(`HTTP ${respuesta.status}`);
+			}
+			const datos = await respuesta.json();
+			const imagen = datos?.[0]?.img;
+			setImagenAutor(imagen || '');
+		} catch (error) {
+			console.error('No se pudo obtener la imagen del autor', error);
+			setImagenAutor('');
+		}
 	};
 
 	const copiarFrase = async () => {
@@ -122,10 +143,16 @@ function App() {
 		consultarAPI()
 	}, []);
 
+	// Cargar imagen del autor cuando cambia la frase
+	useEffect(() => {
+		consultarImagenAutor(frase.author);
+	}, [frase.author]);
+
 	return (
 		<Contenedor>
 			<Frase
 				frase={frase}
+				imagenAutor={imagenAutor}
 			/>
 			<Boton
 				onClick={consultarAPI}
