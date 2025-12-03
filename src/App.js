@@ -55,6 +55,7 @@ function App() {
 	//  state de frases
 	const [frase, guardarFrase] = useState({});
 	const [imagenAutor, setImagenAutor] = useState('');
+	const [personajes, setPersonajes] = useState([]);
 
 	const consultarAPI = async () => {
 		try {
@@ -81,9 +82,38 @@ function App() {
 		return `"${frase.quote}" — ${frase.author || 'Desconocido'}`;
 	};
 
+	const normalizarNombre = nombre =>
+		(nombre || '')
+			.toLowerCase()
+			.replace(/["']/g, '')
+			.replace(/\s+/g, ' ')
+			.trim();
+
+	const buscarImagenEnLista = autor => {
+		const normalizado = normalizarNombre(autor);
+		if (!normalizado) return '';
+
+		// Coincidencia exacta
+		const exacto = personajes.find(p => normalizarNombre(p.name) === normalizado);
+		if (exacto?.img) return exacto.img;
+
+		// Coincidencia parcial (por ejemplo "Gus Fring" vs "Gustavo 'Gus' Fring")
+		const parcial = personajes.find(p =>
+			normalizarNombre(p.name).includes(normalizado) || normalizado.includes(normalizarNombre(p.name))
+		);
+		return parcial?.img || '';
+	};
+
 	const consultarImagenAutor = async autor => {
 		if (!autor) {
 			setImagenAutor('');
+			return;
+		}
+
+		// Primero intenta con lo que ya tenemos en memoria
+		const imagenLocal = buscarImagenEnLista(autor);
+		if (imagenLocal) {
+			setImagenAutor(imagenLocal);
 			return;
 		}
 
@@ -141,6 +171,24 @@ function App() {
 	// Cargar una frase
 	useEffect(() => {
 		consultarAPI()
+	}, []);
+
+	// Cargar lista de personajes para hacer matching local de imágenes
+	useEffect(() => {
+		const cargarPersonajes = async () => {
+			try {
+				const respuesta = await fetch('https://breakingbadapi.com/api/characters');
+				if (!respuesta.ok) {
+					throw new Error(`HTTP ${respuesta.status}`);
+				}
+				const datos = await respuesta.json();
+				setPersonajes(datos || []);
+			} catch (error) {
+				console.error('No se pudo cargar la lista de personajes', error);
+			}
+		};
+
+		cargarPersonajes();
 	}, []);
 
 	// Cargar imagen del autor cuando cambia la frase
